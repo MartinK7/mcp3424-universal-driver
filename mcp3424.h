@@ -32,23 +32,38 @@
 #ifndef _MCP3424_H_
 #define _MCP3424_H_
 
+/* I2C bus timeout. */
+#define MCP3424_TIMEOUT MS2ST(4)
+
+/* Configuration byte bit definitions. */
+#define MCP3424_CONFIG_RDY 0x80
+#define MCP3424_CONFIG_C1  0x40
+#define MCP3424_CONFIG_C0  0x20
+#define MCP3424_CONFIG_OC  0x10
+#define MCP3424_CONFIG_S1  0x08
+#define MCP3424_CONFIG_S0  0x04
+#define MCP3424_CONFIG_G1  0x02
+#define MCP3424_CONFIG_G0  0x01
+
 enum mcp3424_mode {
 	MCP3424_MODE_SINGLE_SHOT,
 	MCP3424_MODE_CONTINUOUS
 };
 
+/* Gain and sample rate enum initialization values correspond to values found
+ * in the MCP3424 datasheet, Register 5-1. */
 enum mcp3424_gain {
-	MCP3424_GAIN_1X,
-	MCP3424_GAIN_2X,
-	MCP3424_GAIN_4X,
-	MCP3424_GAIN_8X
+	MCP3424_GAIN_1X = 0,
+	MCP3424_GAIN_2X = 1,
+	MCP3424_GAIN_4X = 2,
+	MCP3424_GAIN_8X = 3
 };
 
 enum mcp3424_sample_rate {
-	MCP3424_RATE_240,
-	MCP3424_RATE_60,
-	MCP3424_RATE_15,
-	MCP3424_RATE_3_75
+	MCP3424_RATE_240  = 0,
+	MCP3424_RATE_60   = 1,
+	MCP3424_RATE_15   = 2,
+	MCP3424_RATE_3_75 = 3
 };
 
 struct mcp3424 {
@@ -56,6 +71,7 @@ struct mcp3424 {
 	enum mcp3424_mode mode;
 	enum mcp3424_gain gain;
 	enum mcp3424_sample_rate rate;
+	uint8_t channel;
 
 	I2CDriver *drv;
 };
@@ -133,8 +149,7 @@ int32_t mcp3424_convert(struct mcp3424 *d);
  * @brief Check if there is new conversion result available.
  *
  * Function checks for new result of current conversion. New result flag
- * is cleared so the function never returns true two times for the same
- * conversion.
+ * is cleared when the result is read.
  */
 int32_t mcp3424_check_result(struct mcp3424 *d);
 #define MCP3424_CHECK_RESULT_UPDATED 0
@@ -161,6 +176,13 @@ int32_t mcp3424_set_channel(struct mcp3424 *d, uint8_t channel);
 int32_t mcp3424_set_sample_rate(struct mcp3424 *d, enum mcp3424_sample_rate rate);
 #define MCP3424_SET_SAMPLE_RATE_OK 0
 #define MCP3424_SET_SAMPLE_RATE_FAILED -1
+
+/**
+ * @brief Read conversion result.
+ */
+int32_t mcp3424_read_result(struct mcp3424 *d, uint32_t *val);
+#define MCP3424_READ_RESULT_OK 0
+#define MCP3424_READ_RESULT_FAILED -1
 
 
 
