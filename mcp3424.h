@@ -23,17 +23,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#include <stdint.h>
-
-#include "ch.h"
-#include "hal.h"
-
 #ifndef _MCP3424_H_
 #define _MCP3424_H_
 
-/* I2C bus timeout. */
-#define MCP3424_TIMEOUT MS2ST(4)
+#include <stdint.h>
 
 /* Configuration byte bit definitions. */
 #define MCP3424_CONFIG_RDY 0x80
@@ -73,20 +66,21 @@ struct mcp3424 {
 	enum mcp3424_sample_rate rate;
 	uint8_t channel;
 
-	I2CDriver *drv;
+	// Universal pointer to I2C device
+	void *dev_i2c;
 };
 
+/**
+ * @brief External recommended I2C driver function
+ */
+extern int32_t mcp3424_port_i2c_master_transmit(struct mcp3424 *d, const uint8_t *txbuf, uint8_t txbytes, uint8_t *rxbuf, uint8_t rxbytes);
+#define MCP3424_PORT_I2C_MASTER_TRANSMIT_OK 0
+#define MCP3424_PORT_I2C_MASTER_TRANSMIT_FAILED -1
 
 /**
- * @brief Check if there is a MCP3424 device on the selected address.
- *
- * @param addr I2C address of the MCP3424 slave.
- * @param i2cd TODO: ChibiOS i2c driver.
+ * @brief External recommended I2C driver function
  */
-int32_t mcp3424_probe(I2CDriver *drv, uint8_t addr);
-#define MCP3424_PROBE_FOUND 0
-#define MCP3424_PROBE_NOTFOUND -1
-#define MCP3424_PROBE_FAILED -2
+extern int32_t mcp3424_port_i2c_master_deinit(struct mcp3424 *d);
 
 /**
  * @brief Init a MCP3424 driver.
@@ -103,7 +97,7 @@ int32_t mcp3424_probe(I2CDriver *drv, uint8_t addr);
  *                         initialized or
  *         MCP3424_INIT_FAILED if an error eccured.
  */
-int32_t mcp3424_init(struct mcp3424 *d, I2CDriver *drv, uint8_t addr);
+int32_t mcp3424_init(struct mcp3424 *d, void *drv, uint8_t addr);
 #define MCP3424_INIT_OK 0
 #define MCP3424_INIT_FAILED -1
 
@@ -180,7 +174,7 @@ int32_t mcp3424_set_sample_rate(struct mcp3424 *d, enum mcp3424_sample_rate rate
 /**
  * @brief Read conversion result.
  */
-int32_t mcp3424_read_result(struct mcp3424 *d, uint32_t *val);
+int32_t mcp3424_read_result(struct mcp3424 *d, int32_t *val);
 #define MCP3424_READ_RESULT_OK 0
 #define MCP3424_READ_RESULT_FAILED -1
 
